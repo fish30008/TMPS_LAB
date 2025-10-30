@@ -15,6 +15,6 @@ public class main {
         Car car2 = new ElectricCar();
         car2.drive();
         CarRepository repo = new CarRepository();
-        repo.save((Car) car);
+        repo.save(car);
     }
 }

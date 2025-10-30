@@ -7,7 +7,6 @@ class Car {
     }
 }
 
-// Handles only saving to the database
 class CarRepository {
     public void save(Car car) {
         System.out.println("Saving car to database...");

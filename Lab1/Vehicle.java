@@ -8,7 +8,8 @@ abstract class Vehicle {
 
 class Boat extends Vehicle {
     public void move() {
-        System.out.println("Lab1.Boat is sailing on the water.");
+        throw new UnsupportedOperationException("Not supported yet.");
+//        System.out.println("Lab1.Boat is sailing on the water.");
     }
 }
 

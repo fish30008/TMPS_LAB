@@ -1,7 +1,7 @@
 package Lab3;
 import java.util.*;
 
-
+//apater pattenr
 interface Rechargeable {
     void plugIn();
 }
