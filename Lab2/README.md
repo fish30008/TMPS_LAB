@@ -76,22 +76,98 @@ Simplify the **construction of complex objects** by building them step-by-step.
 **Implementation:**
 
 ```java
-public class VehicleBuilder {
-    private String type = "car";
-    public VehicleBuilder setType(String type) {
-        this.type = type;
-        return this;
+class Vehicle {
+    private String type;
+    private String wheels;
+    private String engine;
+    private String color;
+
+    public void setType(String type) { this.type = type; }
+    public void setWheels(String wheels) { this.wheels = wheels; }
+    public void setEngine(String engine) { this.engine = engine; }
+    public void setColor(String color) { this.color = color; }
+}
+
+
+//here is concrete builder that implements our interface builder
+class CarBuilder implements VehicleBuilder {
+    private final Vehicle vehicle = new Vehicle();
+
+    public void buildType(String type) {
+        vehicle.setType(type);
     }
-    public IVehicle build() {
-        return VehicleFactory.createVehicle(type);
+    public void buildWheels(String wheels) {
+        vehicle.setWheels(wheels);
+    }
+    public void buildEngine(String engine) {
+        vehicle.setEngine(engine);
+    }
+    public void buildColor(String color) {
+        vehicle.setColor(color);
+    }
+    public Vehicle getVehicle() {
+        return vehicle;
     }
 }
+
+    // ===== Director Class =====
+    class VehicleDirector {
+        private final VehicleBuilder builder;
+
+        public VehicleDirector(VehicleBuilder builder) {
+            this.builder = builder;
+        }
+
+        public Vehicle construct() {
+            Scanner scanner = new Scanner(System.in);
+            List<String> flags = new ArrayList<>();
+            Map<String, String> flagValues = new HashMap<>();
+
+            System.out.println("Enter which parts to build (type, wheels, engine, color). Type 'done' to finish:");
+            while (true) {
+                System.out.print("Part: ");
+                String input = scanner.nextLine().trim().toLowerCase();
+                if (input.equals("done")) break;
+                flags.add(input);
+            }
+
+            // STEP 2: Enter values for those parts
+            System.out.println("\nEnter values for selected parts:");
+            for (String flag : flags) {
+                System.out.print(flag + " value: ");
+                String value = scanner.nextLine().trim();
+                flagValues.put(flag, value);
+            }
+
+            // STEP 3: Build according to chosen parts and entered values
+            for (String flag : flags) {
+                switch (flag) {
+                    case "type":
+                        builder.buildType(flagValues.get("type"));
+                        break;
+                    case "wheels":
+                        try {
+                            builder.buildWheels(flagValues.get("wheels"));
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid number for wheels, skipping...");
+                        }
+                        break;
+                    case "engine":
+                        builder.buildEngine(flagValues.get("engine"));
+                        break;
+                    case "color":
+                        builder.buildColor(flagValues.get("color"));
+                        break;
+                    default:
+                        System.out.println("Unknown flag: " + flag);
+                }
+            }
+
+            return builder.getVehicle();
+        }
+    }
 ```
 
-**Flow:**
-
-* `VehicleBuilder` receives parameters incrementally
-* When `.build()` is called, it uses `VehicleFactory` to create the object
 
 **Benefit:**
 
