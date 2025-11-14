@@ -1,34 +1,58 @@
 package Lab3;
 import java.util.*;
 
-//apater pattenr
+//apater pattenr ## client interface what it expects
 interface Rechargeable {
     void plugIn();
 }
+
+//here is what i have
 interface FuelPowered {
-    void fillTank();
+    void fillTank(int volume);
 }
 
 class DieselTruck implements FuelPowered {
+
+    private int volume;
+
+    public DieselTruck(int volume) {
+        this.volume = volume;
+    }
     @Override
-    public void fillTank() {
-        System.out.println("Filling up the diesel tank...");
+    public void fillTank(int volume) {
+        this.volume = volume;
+        System.out.println("Filling up" + volume + "litres in the diesel tank...");
+    }
+
+    public int getVolume() {
+        return volume;
     }
 }
 
 class RechargeAdapter implements Rechargeable {
     private final FuelPowered fuelMachine;
+    private final int fuelVolume;
 
-    public RechargeAdapter(FuelPowered fuelMachine) {
+    public RechargeAdapter(FuelPowered fuelMachine, int fuelVolume) {
         this.fuelMachine = fuelMachine;
+        this.fuelVolume = fuelVolume;
     }
 
     @Override
     public void plugIn() {
         System.out.print("Adapter converts electrical input into fuel process: ");
-        fuelMachine.fillTank();
+        fuelMachine.fillTank(this.fuelVolume);
     }
 }
+
+class ElectricCarsWorld {
+    public void rechargeVehicle(Rechargeable vehicle) {
+        System.out.println("Electric station ready!");
+        vehicle.plugIn();
+        System.out.println("Recharge complete!\n");
+    }
+}
+
 
 
 abstract class MachineComponent {
@@ -143,10 +167,11 @@ class NavigationSystem extends VehicleUpgrade {
 public class Main {
     public static void main(String[] args) {
 
-        // --- Adapter Pattern Demo ---
-        System.out.println("ADAPTER PATTERN DEMO:");
-        Rechargeable hybridTruck = new RechargeAdapter(new DieselTruck());
-        hybridTruck.plugIn();
+        //Adapters pattern
+        ElectricCarsWorld station = new ElectricCarsWorld();
+        DieselTruck truck = new DieselTruck(10);
+        RechargeAdapter rechargeAdapter = new RechargeAdapter(truck, 59);
+        station.rechargeVehicle(rechargeAdapter);
 
         // --- Composite Pattern Demo ---
         System.out.println("\nCOMPOSITE PATTERN DEMO:");
