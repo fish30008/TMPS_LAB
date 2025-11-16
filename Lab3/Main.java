@@ -11,6 +11,7 @@ interface FuelPowered {
     void fillTank(int volume);
 }
 
+//Adapted Class
 class DieselTruck implements FuelPowered {
 
     private int volume;
@@ -29,6 +30,7 @@ class DieselTruck implements FuelPowered {
     }
 }
 
+//Adapter
 class RechargeAdapter implements Rechargeable {
     private final FuelPowered fuelMachine;
     private final int fuelVolume;
@@ -53,12 +55,15 @@ class ElectricCarsWorld {
     }
 }
 
+//## adapter ends
 
 
+
+// operations that are common for somple and complex elements of tree
 abstract class MachineComponent {
     public abstract void showDetails(int level);
 }
-
+// the leaf class
 class MachinePart extends MachineComponent {
     private final String label;
 
@@ -72,6 +77,8 @@ class MachinePart extends MachineComponent {
     }
 }
 
+
+//all componnent classes can extend other components aka delegates the actual job to childern
 class MachineUnit extends MachineComponent {
     private final String label;
     private final List<MachineComponent> subComponents = new ArrayList<>();
@@ -84,6 +91,10 @@ class MachineUnit extends MachineComponent {
         subComponents.add(component);
     }
 
+    public void detach(MachineComponent component) {
+        subComponents.remove(component);
+    }
+
     @Override
     public void showDetails(int level) {
         System.out.println(" ".repeat(level) + "+ Unit: " + label);
@@ -94,15 +105,19 @@ class MachineUnit extends MachineComponent {
 }
 
 
-abstract class VehicleBase {
-    public abstract String description();
-    public abstract double price();
+
+// implementing decorator -- Cline can wrap components in multiple layers of decorators
+//  as long as it works with all obejcts
+interface VehicleBase {
+    String description();
+    double price();
 }
 
-class SimpleVan extends VehicleBase {
+//conccrete components
+class SimpleVan implements VehicleBase {
     @Override
     public String description() {
-        return "Standard Van";
+        return "Standard VehicleBase";
     }
 
     @Override
@@ -111,8 +126,8 @@ class SimpleVan extends VehicleBase {
     }
 }
 
-// Decorator base
-abstract class VehicleUpgrade extends VehicleBase {
+// Decorator base with wrapper
+abstract class VehicleUpgrade implements VehicleBase {
     protected final VehicleBase vehicle;
 
     public VehicleUpgrade(VehicleBase vehicle) {
@@ -147,6 +162,23 @@ class LeatherSeats extends VehicleUpgrade {
     }
 }
 
+
+class BMW_Subscription extends VehicleUpgrade {
+    public BMW_Subscription(VehicleBase vehicle) {
+        super(vehicle);
+    }
+
+    @Override
+    public String description() {
+        return vehicle.description() + " + subscription";
+    }
+
+    @Override
+    public double price() {
+        return vehicle.price() + 10;
+    }
+}
+
 class NavigationSystem extends VehicleUpgrade {
     public NavigationSystem(VehicleBase vehicle) {
         super(vehicle);
@@ -176,8 +208,11 @@ public class Main {
         // --- Composite Pattern Demo ---
         System.out.println("\nCOMPOSITE PATTERN DEMO:");
         MachineUnit powerUnit = new MachineUnit("Power Unit");
+        powerUnit.attach(new MachinePart("StockParts"));
         powerUnit.attach(new MachinePart("Compressor"));
         powerUnit.attach(new MachinePart("Cooling Fan"));
+        powerUnit.attach(new MachinePart("Down pipe"));
+        powerUnit.detach(new MachinePart("StockParts"));
 
         MachineUnit vehicleBody = new MachineUnit("Vehicle Body");
         vehicleBody.attach(new MachinePart("Chassis Frame"));
@@ -190,7 +225,8 @@ public class Main {
         VehicleBase deliveryVan = new SimpleVan();
         deliveryVan = new LeatherSeats(deliveryVan);
         deliveryVan = new NavigationSystem(deliveryVan);
+        deliveryVan = new BMW_Subscription(deliveryVan);
 
-        System.out.println(deliveryVan.description() + " costs $" + deliveryVan.price());
+        System.out.println(deliveryVan.description() + " costs $ = " + deliveryVan.price());
     }
 }
