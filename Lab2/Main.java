@@ -1,21 +1,24 @@
 package Lab2;
-
+import java.util.*;
 
 interface VehicleBuilder {
-    void buildType();
-    void buildWheels();
-    void buildEngine();
-    void buildColor();
+    void buildType(String s);
+    void buildWheels(String s);
+    void buildEngine(String s);
+    void buildColor(String s);
     Vehicle getVehicle();
 }
 //interface contains only defenitions
-interface IVehicle {
+interface IVehicle
+{
+    String name = "Something";
     void move(VehicleLogger v);
 }
 
 
 // use implements because it's interface
 class Car implements IVehicle {
+
     @Override
     public void move(VehicleLogger logger) {
         System.out.println("The car is driving on the road.");
@@ -44,16 +47,12 @@ class VehicleFactory {
         if (type == null) {
             throw new IllegalArgumentException("Vehicle type cannot be null");
         }
-        switch (type.toLowerCase()) {
-            case "car":
-                return new Car();
-            case "bicycle":
-                return new Bicycle();
-            case "sports":
-                return new SportsCar(); //and as many as you want
-            default:
-                throw new IllegalArgumentException("Invalid vehicle type: " + type);
-        }
+        return switch (type.toLowerCase()) {
+            case "car" -> new Car();
+            case "bicycle" -> new Bicycle();
+            case "sports" -> new SportsCar(); //and as many as you want
+            default -> throw new IllegalArgumentException("Invalid vehicle type: " + type);
+        };
     }
 }
 
@@ -75,81 +74,97 @@ class VehicleLogger {
     }
 }
 
-// Here is concrete class ->
 class Vehicle {
     private String type;
-    private int wheels;
+    private String wheels;
     private String engine;
     private String color;
 
-    public Vehicle(String type, int wheels, String engine, String color) {
-        this.type = type;
-        this.wheels = wheels;
-        this.engine = engine;
-        this.color = color;
-    }
-
-    // setters used by builders (not public API for others)
     public void setType(String type) { this.type = type; }
-    public void setWheels(int wheels) { this.wheels = wheels; }
+    public void setWheels(String wheels) { this.wheels = wheels; }
     public void setEngine(String engine) { this.engine = engine; }
     public void setColor(String color) { this.color = color; }
-
-    // simulate behavior
-    public void move(VehicleLogger logger) {
-        logger.log(type + " with " + wheels + " wheels and " + engine + " engine is moving!");
-        System.out.println(type + " (" + color + ") is now on the road.");
-    }
-
-    @Override
-    public String toString() {
-        return "Vehicle{" +
-                "type='" + type + '\'' +
-                ", wheels=" + wheels +
-                ", engine='" + engine + '\'' +
-                ", color='" + color + '\'' +
-                '}';
-    }
 }
+
+
 //here is concrete builder that implements our interface builder
 class CarBuilder implements VehicleBuilder {
-    private final Vehicle vehicle;
+    private final Vehicle vehicle = new Vehicle();
 
-    public CarBuilder(String type, int wheels, String engine, String color) {
-        // directly create a configured Vehicle
-        this.vehicle = new Vehicle(type, wheels, engine, color);
+    public void buildType(String type) {
+        vehicle.setType(type);
     }
-    @Override
-    public void buildType() {}
-
-    @Override
-    public void buildWheels() {}
-
-    @Override
-    public void buildEngine() {}
-
-    @Override
-    public void buildColor() { }
-
-    @Override
-    public Vehicle getVehicle() { return vehicle; }
-}
-
-class VehicleDirector {
-    private final VehicleBuilder builder;
-
-    public VehicleDirector(VehicleBuilder builder) {
-        this.builder = builder;
+    public void buildWheels(String wheels) {
+        vehicle.setWheels(wheels);
     }
-
-    public Vehicle construct() {
-        builder.buildType();
-        builder.buildWheels();
-        builder.buildEngine();
-        builder.buildColor();
-        return builder.getVehicle();
+    public void buildEngine(String engine) {
+        vehicle.setEngine(engine);
+    }
+    public void buildColor(String color) {
+        vehicle.setColor(color);
+    }
+    public Vehicle getVehicle() {
+        return vehicle;
     }
 }
+
+    // ===== Director Class =====
+    class VehicleDirector {
+        private final VehicleBuilder builder;
+
+        public VehicleDirector(VehicleBuilder builder) {
+            this.builder = builder;
+        }
+
+        public Vehicle construct() {
+            Scanner scanner = new Scanner(System.in);
+            List<String> flags = new ArrayList<>();
+            Map<String, String> flagValues = new HashMap<>();
+
+            System.out.println("Enter which parts to build (type, wheels, engine, color). Type 'done' to finish:");
+            while (true) {
+                System.out.print("Part: ");
+                String input = scanner.nextLine().trim().toLowerCase();
+                if (input.equals("done")) break;
+                flags.add(input);
+            }
+
+            // STEP 2: Enter values for those parts
+            System.out.println("\nEnter values for selected parts:");
+            for (String flag : flags) {
+                System.out.print(flag + " value: ");
+                String value = scanner.nextLine().trim();
+                flagValues.put(flag, value);
+            }
+
+            // STEP 3: Build according to chosen parts and entered values
+            for (String flag : flags) {
+                switch (flag) {
+                    case "type":
+                        builder.buildType(flagValues.get("type"));
+                        break;
+                    case "wheels":
+                        try {
+                            builder.buildWheels(flagValues.get("wheels"));
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid number for wheels, skipping...");
+                        }
+                        break;
+                    case "engine":
+                        builder.buildEngine(flagValues.get("engine"));
+                        break;
+                    case "color":
+                        builder.buildColor(flagValues.get("color"));
+                        break;
+                    default:
+                        System.out.println("Unknown flag: " + flag);
+                }
+            }
+
+            return builder.getVehicle();
+        }
+    }
+
 
 
 // ===== File: Main.java =====
@@ -158,7 +173,6 @@ public class Main {
         // Direct vehicle use
         VehicleLogger logger = VehicleLogger.getInstance();
         logger.log("Application started");
-
 
 
         System.out.println("\n=== Factory Pattern ===");
@@ -171,11 +185,12 @@ public class Main {
 
 
         System.out.println("\n=== Builder Pattern ===");
-        VehicleDirector carDirector = new VehicleDirector(new CarBuilder("Car", 4, "V8", "Blue"));
-        Vehicle car = carDirector.construct();
-        car.move(logger);
-        System.out.println(car);
+        VehicleBuilder carBuilder = new CarBuilder();
+        VehicleDirector carDirector = new VehicleDirector(carBuilder);
 
+        Vehicle car = carDirector.construct();
+        System.out.println("Constructed Vehicle: " + car);
+//        System.out.println(car);
 
 
         logger.log("Program ended");
