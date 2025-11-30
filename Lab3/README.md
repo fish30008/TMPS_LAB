@@ -188,4 +188,172 @@ It’s a flexible alternative to subclassing for feature extension.
 
 > **Base Object (SimpleVan)** → wrapped by **LeatherSeats** → wrapped by **NavigationSystem**
 > → Result: *Dynamic combination of features and total cost.*
+# Vehicle Management System Lab Report
 
+## Design Patterns Implementation
+
+### **1. State Pattern (Behavioral)**
+**Purpose**: Manage vehicle state transitions
+
+#### Implementation:
+- **`VehicleState` Interface**: Defines `start()`, `stop()`, `accelerate()`, `getStateName()`
+- **Concrete States**:
+  - `StoppedState`: Vehicle is powered off
+  - `IdleState`: Engine running but stationary
+  - `MovingState`: Vehicle in motion
+- **`VehicleContext`**: Maintains current state and delegates operations
+
+#### State Transitions:
+```
+StoppedState → (start) → IdleState → (accelerate) → MovingState
+MovingState → (stop) → IdleState → (stop) → StoppedState
+```
+
+#### Usage Example:
+```java
+IVehicle vehicle = VehicleFactory.createVehicle("sports");
+VehicleContext state = new VehicleContext(vehicle.getType());
+state.start();          // Engine starting... Vehicle is now IDLE
+state.accelerate();     // Accelerating... Vehicle is now MOVING
+state.stop();           // Braking... Vehicle is now IDLE
+```
+
+---
+
+### **2. Strategy Pattern (Behavioral)**
+**Purpose**: Implement interchangeable driving algorithms
+
+#### Implementation:
+- **`DrivingStrategy` Interface**: Defines `drive()` and `getStrategyName()`
+- **Concrete Strategies**:
+  - `EcoDriving`: Fuel-efficient, low-speed driving
+  - `NormalDriving`: Balanced performance and comfort
+  - `SportDriving`: High-performance, aggressive driving
+  - `OffRoadDriving`: Terrain-optimized driving
+- **`VehicleDriver` Context**: Uses and switches between strategies
+
+#### Usage Example:
+```java
+VehicleDriver driver = new VehicleDriver("Car");
+driver.setDrivingStrategy(new NormalDriving());
+driver.performDrive();  // Normal driving mode
+
+driver.setDrivingStrategy(new SportDriving());
+driver.performDrive();  // Sport driving mode
+```
+
+---
+
+### **3. Iterator Pattern (Behavioral)**
+**Purpose**: Provide flexible traversal of vehicle collections
+
+#### Implementation:
+- **`VehicleIterator` Interface**: `hasNext()`, `getNext()`, `reset()`
+- **Concrete Iterators**:
+  - `AllVehiclesIterator`: Sequential iteration through all vehicles
+  - `TypeFilterIterator`: Filters vehicles by type with lazy initialization
+- **`VehicleCollection` Interface**: Factory for creating iterators
+- **`VehicleFleetCollection`: Manages vehicle storage and iterator creation
+- **`VehicleNotifier` Client**: Uses iterators for operations
+
+#### Usage Example:
+```java
+VehicleFleetCollection fleet = new VehicleFleetCollection();
+fleet.addVehicle(VehicleFactory.createVehicle("car"));
+fleet.addVehicle(VehicleFactory.createVehicle("electric"));
+
+// Filtered iteration
+VehicleIterator carIterator = fleet.createTypeIterator("Car");
+notifier.notifyMaintenance(carIterator, "Oil change required");
+
+// Complete iteration
+VehicleIterator allIterator = fleet.createAllIterator();
+notifier.performInspection(allIterator);
+```
+
+---
+
+### **4. Factory Pattern (Creational)**
+**Purpose**: Centralize vehicle object creation
+
+#### Implementation:
+- **`VehicleFactory`**: Static factory method `createVehicle(String type)`
+- **Supported Types**: "car", "sports", "electric", "gas", "bicycle"
+
+#### Usage Example:
+```java
+IVehicle car = VehicleFactory.createVehicle("car");
+IVehicle sportsCar = VehicleFactory.createVehicle("sports");
+```
+
+---
+
+## Pattern Integration & System Workflow
+
+### **Complete System Flow:**
+1. **Creation**: Vehicles created via Factory Pattern
+2. **Storage**: Vehicles managed in Fleet Collection
+3. **Traversal**: Iterators provide flexible access patterns
+4. **State Management**: Each vehicle maintains state machine
+5. **Behavior**: Driving strategies define vehicle behavior
+
+### **Key Benefits Demonstrated:**
+
+#### **1. Maintainability**
+- Each pattern encapsulates specific concerns
+- Easy to extend (add new states, strategies, iterators)
+- Minimal conditional logic
+
+#### **2. Flexibility**
+- Runtime strategy switching
+- Multiple iteration algorithms
+- Dynamic state transitions
+
+#### **3. Scalability**
+- New vehicle types easily added
+- Additional states/strategies integrate seamlessly
+- Collection operations remain consistent
+
+#### **4. Code Reusability**
+- Iterators reusable across different operations
+- Strategies applicable to multiple vehicle types
+- State logic independent of vehicle type
+
+---
+
+## Output Example
+```
+=== 6. ITERATOR PATTERN (Behavioral) ===
+
+[Car - NORMAL MODE]
+  🚗 Normal driving mode:
+     - Speed: Moderate (60 km/h)
+     - Fuel efficiency: Optimal
+     - Comfort: High
+
+[Car - SPORT MODE]
+  🏎️ Sport driving mode:
+     - Speed: High (120 km/h)
+     - Fuel efficiency: Low
+     - Acceleration: Maximum
+     - Engine response: Aggressive
+
+=== Vehicle Management System Ended ===
+```
+
+---
+
+## Design Principles Applied
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Single Responsibility** | Each class has one clear purpose |
+| **Open/Closed** | Easy to extend without modifying existing code |
+| **Dependency Inversion** | Depend on abstractions, not concretions |
+| **Interface Segregation** | Focused interfaces for specific clients |
+| **Liskov Substitution** | All implementations substitutable for interfaces |
+
+---
+
+## Conclusion
+This lab successfully demonstrates three behavioral patterns (State, Strategy, Iterator) working together with a creational pattern (Factory) to create a flexible, maintainable vehicle management system. Each pattern addresses specific concerns while integrating seamlessly to provide comprehensive vehicle lifecycle management.
